@@ -39,6 +39,7 @@ url_post_login = config.URL_POST_LOGIN
 
 # Inicializando request session
 session = requests.Session()
+session.headers.update(config.headers)
 
 # Fazendo a requisição GET e obtendo os elementos HTML necessários para o login
 vcid, hs, sp, img_tag = get_elements_html_login(session, url_get_login)
@@ -63,7 +64,9 @@ payload = {
     'jwtGoogle': ''
 }
 
-result_login = requests.post(url_post_login, data=payload)
+print(f'Recaptcha Code: {recaptcha_code}')
+
+result_login = requests.post(url_post_login, data=payload, headers=config.headers, allow_redirects=True)
 
 print(f"Status Code: {result_login.status_code}")
 print("")
