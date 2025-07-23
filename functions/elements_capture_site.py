@@ -27,7 +27,11 @@ def get_elements_html_login(requests_session, url_get_login):
     sp = soup.find("input", {"name": "BDC_SP_loginCaptcha"})["value"]
     img_tag = soup.find("img", {"class": "BDC_CaptchaImage"})
 
-    return vcid, hs, sp, img_tag
+    session_cookie = f"JSESSIONID={requests_session.cookies.get('JSESSIONID')}"
+
+    return requests_session, session_cookie, vcid, hs, sp, img_tag
+
+
 
 def capture_captcha_image(img_tag, url_get_login):
     '''

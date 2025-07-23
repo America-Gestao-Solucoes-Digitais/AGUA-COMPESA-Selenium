@@ -6,6 +6,7 @@ import os
 import config
 
 # Importando bibliotecas
+from requests import Request
 import requests
 import sys
 import os
@@ -39,10 +40,14 @@ url_post_login = config.URL_POST_LOGIN
 
 # Inicializando request session
 session = requests.Session()
-session.headers.update(config.headers)
 
 # Fazendo a requisição GET e obtendo os elementos HTML necessários para o login
-vcid, hs, sp, img_tag = get_elements_html_login(session, url_get_login)
+session, jsessionid_raw, vcid, hs, sp, img_tag = get_elements_html_login(session, url_get_login)
+session_cookie = jsessionid_raw
+
+for k, v in session.cookies.items():
+    print(f"{k} = {v}")
+
 
 # Capturando a imagem e retornando o caminho da imagem
 path_img = capture_captcha_image(img_tag, url_get_login)
@@ -51,6 +56,7 @@ path_img = capture_captcha_image(img_tag, url_get_login)
 recaptcha_code = solve_captcha(path_img)
 
 # deletar o arquivo de imagem após o uso (ou usar o diretorio temporário)
+#os.remove(path_img)
 
 # Construindo payload base para o POST
 payload = {
@@ -64,10 +70,17 @@ payload = {
     'jwtGoogle': ''
 }
 
-print(f'Recaptcha Code: {recaptcha_code}')
 
-result_login = requests.post(url_post_login, data=payload, headers=config.headers, allow_redirects=True)
+print(f"Payload: {payload}")
 
-print(f"Status Code: {result_login.status_code}")
-print("")
+result_login = session.post(url_post_login, data=payload, headers=config.get_headers(session_cookie))
+
 print(f"Response Text: {result_login.text}")
+print("")
+print(f"Status Code: {result_login.status_code}")
+
+with open("resposta.html", "w", encoding="utf-8") as f:
+    f.write(result_login.text)
+
+# deletar o arquivo de imagem após o uso (ou usar o diretorio temporário)
+os.remove("images/captcha.jpg")
