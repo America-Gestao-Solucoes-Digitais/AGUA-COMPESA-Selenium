@@ -39,18 +39,6 @@ senha = "Magazine@2025"
 url_get_login = config.URL_GET_LOGIN
 url_post_login = config.URL_POST_LOGIN
 
-driver = Selenium_driver().driver
-
-
-# Capturando o HTML da página atual
-# Captura os cookies criados
-cookies = driver.get_cookies()
-
-# Exibe os nomes dos cookies (ex: dtPCmplfigul, rxVisitor, etc.)
-for cookie in cookies:
-    print(cookie['name'], "=", cookie['value'])
-
-
 # Inicializando request session
 session = requests.Session()
 
@@ -59,13 +47,10 @@ session, jsessionid_raw, vcid, hs, sp, img_tag = get_elements_html_login(session
 session_cookie = jsessionid_raw
 
 # Capturando a imagem e retornando o caminho da imagem
-path_img = capture_captcha_image(img_tag, url_get_login)
+path_img = capture_captcha_image(session, img_tag, url_get_login)
 
 # Resolvendo o CAPTCHA usando a API do TwoCaptcha
 recaptcha_code = solve_captcha(path_img)
-
-# deletar o arquivo de imagem após o uso (ou usar o diretorio temporário)
-os.remove(path_img)
 
 # Construindo payload base para o POST
 payload = {
@@ -89,7 +74,7 @@ header = {
     "Cache-Control": "max-age=0",
     "Connection": "keep-alive",
     "Content-Type": "application/x-www-form-urlencoded",
-    "Cookie": cookie,  
+    "Cookie": session_cookie,
     "Host": "lojavirtual.compesa.com.br",
     "Origin": "https://lojavirtual.compesa.com.br",
     "Referer": "https://lojavirtual.compesa.com.br/gsan/loginPortalAction.do?action=login",
@@ -108,14 +93,14 @@ header = {
     "sec-ch-ua-platform": '"Windows"'
     }
 
-result_login = session.post(url_post_login, data=payload, headers=header)
+result_login = session.post(url_post_login, data=payload, headers=header) # session.post(url_post_login, data=payload)
 
-# print(f"Response Text: {result_login.text}")
-# print("")
-# print(f"Status Code: {result_login.status_code}")
+print(f"Response Text: {result_login.text}")
+print("")
+print(f"Status Code: {result_login.status_code}")
 
 with open("resposta.html", "w", encoding="utf-8") as f:
     f.write(result_login.text)
 
 # deletar o arquivo de imagem após o uso (ou usar o diretorio temporário)
-os.remove("images/captcha.jpg")
+#os.remove("images/captcha.jpg")

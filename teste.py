@@ -10,6 +10,7 @@ import config
 from requests import Request
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+import time
 import requests
 import sys
 import os
@@ -50,10 +51,20 @@ ActionChains(driver).move_to_element(campo_login).click().send_keys(login).perfo
 campo_password = driver.find_element(By.NAME, "senha")
 ActionChains(driver).move_to_element(campo_password).click().send_keys(senha).perform()
 
-# Capturando o HTML da página atual
-# Captura os cookies criados
-cookies = driver.get_cookies()
+# Encontra o elemento da imagem do CAPTCHA
+captcha_img = driver.find_element(By.ID, "loginCaptcha_CaptchaImage")
 
-# Exibe os nomes dos cookies (ex: dtPCmplfigul, rxVisitor, etc.)
-for cookie in cookies:
-    print(cookie['name'], "=", cookie['value'])
+# Tira screenshot do elemento e salva como JPG
+captcha_img.screenshot("images/captcha.jpg")
+
+# Resolvendo o CAPTCHA usando a API do TwoCaptcha
+captcha_code = solve_captcha("images/captcha.jpg")
+
+campo_captcha = driver.find_element(By.NAME, "captchaCode")
+ActionChains(driver).move_to_element(campo_captcha).click().send_keys(captcha_code).perform()
+
+
+entrar_button = driver.find_element(By.XPATH, '/html/body/form/div[5]/div/div/div[5]/div/input[1]')
+ActionChains(driver).move_to_element(entrar_button).click().perform()
+
+time.sleep(10)

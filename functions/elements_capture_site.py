@@ -33,7 +33,7 @@ def get_elements_html_login(requests_session, url_get_login):
 
 
 
-def capture_captcha_image(img_tag, url_get_login):
+def capture_captcha_image(requests_session, img_tag, url_get_login):
     '''
     Captura a imagem do CAPTCHA, salva ela no diretório 'images/' 
     e retorna a URL da imagem.
@@ -44,7 +44,7 @@ def capture_captcha_image(img_tag, url_get_login):
     captcha_url = urljoin(url_get_login, captcha_src)
 
     # Faz a requisição para obter a imagem do CAPTCHA
-    response_img = requests.get(captcha_url)
+    response_img = requests_session.get(captcha_url)
 
     # Salva a imagem do CAPTCHA no arquivo images/
     with open("images/captcha.jpg", "wb") as f:
