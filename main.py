@@ -8,6 +8,9 @@ import config
 
 # Importando bibliotecas
 from requests import Request
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+import time
 import requests
 import sys
 import os
@@ -39,15 +42,20 @@ senha = "Magazine@2025"
 url_get_login = config.URL_GET_LOGIN
 url_post_login = config.URL_POST_LOGIN
 
-# Inicializando request session
-session = requests.Session()
+driver = Selenium_driver().driver
 
-# Fazendo a requisição GET e obtendo os elementos HTML necessários para o login
-session, jsessionid_raw, vcid, hs, sp, img_tag = get_elements_html_login(session, url_get_login)
-session_cookie = jsessionid_raw
+# Move o mouse e digita algo
+campo_login = driver.find_element(By.NAME, "login")
+ActionChains(driver).move_to_element(campo_login).click().send_keys(login).perform()
 
-# Capturando a imagem e retornando o caminho da imagem
-path_img = capture_captcha_image(session, img_tag, url_get_login)
+campo_password = driver.find_element(By.NAME, "senha")
+ActionChains(driver).move_to_element(campo_password).click().send_keys(senha).perform()
+
+# Encontra o elemento da imagem do CAPTCHA
+captcha_img = driver.find_element(By.ID, "loginCaptcha_CaptchaImage")
+
+# Tira screenshot do elemento e salva como JPG
+captcha_img.screenshot("images/captcha.jpg")
 
 # Resolvendo o CAPTCHA usando a API do TwoCaptcha
 recaptcha_code = solve_captcha(path_img)
