@@ -6,16 +6,19 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 import time
 
+
+
 class Selenium_driver():
     '''
     Classe reponsável por gerenciar o selenium. 
     Inicializa criando o drive do Selenium e acessando o site da Neoenergia.
     '''
-    def __init__(self, url):
+    def __init__(self):
         '''Inicializa o Selenium e acessa o site da Compesa.'''
-        self.url = url
         self.driver = self.iniciar_selenium()
         self.get_site()
+
+
 
     def iniciar_selenium(self):
         '''Inicializa o Selenium com o Chrome WebDriver padrão'''
@@ -59,6 +62,7 @@ class Selenium_driver():
         time.sleep(0.5)
 
 
+
     def captura_recaptcha(self):
         '''Captura a imagem do reCAPTCHA.'''
 
@@ -69,6 +73,7 @@ class Selenium_driver():
         recaptcha_img.screenshot("images/recaptcha.jpg")
 
         return "images/recaptcha.jpg"
+
 
 
     def captura_html(self):

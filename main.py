@@ -1,17 +1,16 @@
 # Importando Modulos
-from functions.elements_capture_site import get_elements_html_login
-from functions.elements_capture_site import capture_captcha_image
 from functions.solver_two_captcha import solve_captcha
 from models.selenium_manager import Selenium_driver
 import os
 import config
 
 # Importando bibliotecas
-from requests import Request
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
 import time
-import requests
 import sys
 import os
 
@@ -30,26 +29,45 @@ BDC_Hs_loginCaptcha: 892eeaa9a5863c1b1fdc09b568ea5b990d0797b1 (Request) (FEITO)
 BDC_SP_loginCaptcha: 568668182 (Request) (FEITO)
 captchaCode: dv34 (Captcha - 2Captcha)
 jwtGoogle: (Default)
+
+Coisas para Criar no código
+
+- Fazer com que o código pegue mais de uma mátricula no mesmo login
+    - Tirar o pop-up e manter a página principal
+    - fazer um loop que identifique a próxima UC do mesmo login
+
+- Verificar de login e senha (Afim de manter na mesma Sessão)
+    - Necessário criar uma base de dados teste
+    - Criar um repositorio temporario
+
+- Criar Validador de excessões afim de continuar o código
+
+- Criar um dataframe com os logs (facilitar a manutenção dos logins e do código)
+
+- Criar um banco de dados ACCESS (temporário)
+    - Status
+    - Faturas já baixadas
+    - insert
 '''
+
+
 
 # Variaveis de AMBIENTE
 
-# - Login e Senha Base (depois pegar df_login) -
+# - Login e Senha Base (depois pegar df_login) - (DEPOIS FAZER UM SELECT QUE ORDERNE POR LOGIN E SENHA)
 login = "aguaeenergia@magazineluiza.com.br"
 senha = "Magazine@2025"
+uc = '2749351'
 
-# - URLs de Login -
+
+# URLs de Login
 url_get_login = config.URL_GET_LOGIN
 url_post_login = config.URL_POST_LOGIN
 
+# Inicializando o driver do Selenium
 driver = Selenium_driver().driver
 
-# Move o mouse e digita algo
-campo_login = driver.find_element(By.NAME, "login")
-ActionChains(driver).move_to_element(campo_login).click().send_keys(login).perform()
 
-campo_password = driver.find_element(By.NAME, "senha")
-ActionChains(driver).move_to_element(campo_password).click().send_keys(senha).perform()
 
 # Encontra o elemento da imagem do CAPTCHA
 captcha_img = driver.find_element(By.ID, "loginCaptcha_CaptchaImage")
@@ -58,57 +76,125 @@ captcha_img = driver.find_element(By.ID, "loginCaptcha_CaptchaImage")
 captcha_img.screenshot("images/captcha.jpg")
 
 # Resolvendo o CAPTCHA usando a API do TwoCaptcha
-recaptcha_code = solve_captcha(path_img)
-
-# Construindo payload base para o POST
-payload = {
-    'login': login,
-    'senha': senha,
-    'BDC_VCID_loginCaptcha': vcid,
-    'BDC_BackWorkaround_loginCaptcha': '1',
-    'BDC_Hs_loginCaptcha': hs,
-    'BDC_SP_loginCaptcha': sp,
-    'captchaCode': recaptcha_code,
-    'jwtGoogle': ''
-}
+captcha_code = solve_captcha("images/captcha.jpg")
 
 
-print(f"Payload: {payload}")
 
-header = {
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-    "Accept-Encoding": "gzip, deflate, br, zstd",
-    "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-    "Cache-Control": "max-age=0",
-    "Connection": "keep-alive",
-    "Content-Type": "application/x-www-form-urlencoded",
-    "Cookie": session_cookie,
-    "Host": "lojavirtual.compesa.com.br",
-    "Origin": "https://lojavirtual.compesa.com.br",
-    "Referer": "https://lojavirtual.compesa.com.br/gsan/loginPortalAction.do?action=login",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "same-origin",
-    "Sec-Fetch-User": "?1",
-    "Upgrade-Insecure-Requests": "1",
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"
-    ),
-    "sec-ch-ua": '"Not)A;Brand";v="8", "Chromium";v="138", "Microsoft Edge";v="138"',
-    "sec-ch-ua-mobile": "?0",
-    "sec-ch-ua-platform": '"Windows"'
-    }
+# Faz o login no site
+campo_login = driver.find_element(By.NAME, "login")
+ActionChains(driver).move_to_element(campo_login).click().send_keys(login).perform()
 
-result_login = session.post(url_post_login, data=payload, headers=header) # session.post(url_post_login, data=payload)
+campo_password = driver.find_element(By.NAME, "senha")
+ActionChains(driver).move_to_element(campo_password).click().send_keys(senha).perform()
 
-print(f"Response Text: {result_login.text}")
-print("")
-print(f"Status Code: {result_login.status_code}")
+campo_captcha = driver.find_element(By.NAME, "captchaCode")
+ActionChains(driver).move_to_element(campo_captcha).click().send_keys(captcha_code).perform()
 
-with open("resposta.html", "w", encoding="utf-8") as f:
-    f.write(result_login.text)
+entrar_button = driver.find_element(By.XPATH, '/html/body/form/div[5]/div/div/div[5]/div/input[1]')
+ActionChains(driver).move_to_element(entrar_button).click().perform()
 
-# deletar o arquivo de imagem após o uso (ou usar o diretorio temporário)
-#os.remove("images/captcha.jpg")
+# Espera o carregamento da página após o login
+time.sleep(2)
+
+
+
+html_pos_login = driver.page_source
+soup = BeautifulSoup(html_pos_login, "html.parser")
+
+menu_button = driver.find_element(By.XPATH, '//*[@id="btn-side-menu"]/span')
+menu_button.click()
+time.sleep(1)
+
+if uc:
+    seletor = f'a.list-group-item[data-value="{uc}"]'
+    wait = WebDriverWait(driver, 10)
+
+    el = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, seletor)))
+    driver.execute_script("arguments[0].scrollIntoView(true);", el)
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, seletor)))
+    driver.execute_script("arguments[0].click();", el)
+    time.sleep(1)
+
+# Salva a janela original
+janela_principal = driver.current_window_handle
+
+menu_button = driver.find_element(By.XPATH, '//*[@id="seg-via-conta"]/form/table[1]/tbody/tr/td[3]/div[1]/a')
+menu_button.click()
+
+# Aguarda a nova janela abrir
+WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
+
+# Identifica a nova janela (popup)
+for handle in driver.window_handles:
+    if handle != janela_principal:
+        popup = handle
+        break
+
+# Alterna para o popup
+driver.switch_to.window(popup)
+
+print("🪟 Popup aberto:", driver.title)
+
+# Aguarda carregar a fatura (ou download)
+time.sleep(3)
+
+# Fecha o popup
+driver.close()  # <- FECHA SOMENTE A JANELA ATUAL (popup)
+
+# Volta para a janela principal
+driver.switch_to.window(janela_principal)
+
+driver.refresh()
+time.sleep(3)
+# ---------------------- UC
+
+uc = '1759'
+
+menu_button = driver.find_element(By.XPATH, '//*[@id="btn-side-menu"]/span')
+menu_button.click()
+time.sleep(1)
+
+if uc:
+    seletor = f'a.list-group-item[data-value="{uc}"]'
+    wait = WebDriverWait(driver, 10)
+
+    el = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, seletor)))
+    driver.execute_script("arguments[0].scrollIntoView(true);", el)
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, seletor)))
+    driver.execute_script("arguments[0].click();", el)
+    time.sleep(1)
+
+# Salva a janela original
+janela_principal = driver.current_window_handle
+
+menu_button = driver.find_element(By.XPATH, '//*[@id="seg-via-conta"]/form/table[1]/tbody/tr/td[3]/div[1]/a')
+menu_button.click()
+
+# Aguarda a nova janela abrir
+WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
+
+# Identifica a nova janela (popup)
+for handle in driver.window_handles:
+    if handle != janela_principal:
+        popup = handle
+        break
+
+# Alterna para o popup
+driver.switch_to.window(popup)
+
+print("🪟 Popup aberto:", driver.title)
+
+# Aguarda carregar a fatura (ou download)
+time.sleep(3)
+
+# Fecha o popup
+driver.close()  # <- FECHA SOMENTE A JANELA ATUAL (popup)
+
+# Volta para a janela principal
+driver.switch_to.window(janela_principal)
+
+
+
+time.sleep(2)
+
+driver.quit()
