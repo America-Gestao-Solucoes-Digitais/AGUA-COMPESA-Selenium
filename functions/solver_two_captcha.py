@@ -28,3 +28,7 @@ def solve_captcha(captcha_image_path):
     except Exception as e:
         print(f"Erro ao resolver CAPTCHA: {e}")
         return None
+    
+    finally:
+        if os.path.exists(captcha_image_path):
+            os.remove(captcha_image_path)

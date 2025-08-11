@@ -1,49 +1,61 @@
 # Importando Modulos
-import config
-
-# Importando bibliotecas
-import requests
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+import time
 
-
-
-def get_elements_html_login(html_login):
+def entry_login(driver, dict_elements, login, password, captcha_code):
     '''
-    Obtém os elementos/atributos do HTML necessários para o login.
+    Encontra os elementos de login do navegador, inputa os dados e faz login.
+    '''
+
+    try:
+        # Encontra o campo e da input
+        campo_login = driver.find_element(dict_elements['NAME_login'][0], dict_elements['NAME_login'][1])
+        ActionChains(driver).move_to_element(campo_login).click().send_keys(login).perform()
+
+        campo_password = driver.find_element(dict_elements['NAME_password'][0], dict_elements['NAME_password'][1])
+        ActionChains(driver).move_to_element(campo_password).click().send_keys(password).perform()
+
+        campo_captcha = driver.find_element(dict_elements['NAME_captcha_code'][0], dict_elements['NAME_captcha_code'][1])
+        ActionChains(driver).move_to_element(campo_captcha).click().send_keys(captcha_code).perform()
+
+        login_button = driver.find_element(dict_elements['XPATH_login_button'][0], dict_elements['XPATH_login_button'][1])
+        ActionChains(driver).move_to_element(login_button).click().perform()
     
-    * vcid = BDC_VCID_loginCaptcha\n
-    * hs = BDC_Hs_loginCaptcha\n
-    * sp = BDC_SP_loginCaptcha\n
+        # Verificar se realmente foi feito o login (Não um falso verdadeiro)
 
-    Observação: img_tag é a tag da imagem do CAPTCHA que será resolvido pelo 2Captcha.
+        return status
+
+    except Exception as e:
+        print(f"[ERRO] entry_login: {e}")
+        status = False
+
+        return status
+
+
+
+def entry_page_uc(driver, dict_elements, instalacao):
+    '''
+    Entra no Menu, tenta encontrar a UC, se caso tenha a UC prossegui para a página dela.
     '''
 
-    soup = BeautifulSoup(html_login, "html.parser")
+    # Encontra e clica na UC
+    menu_button = driver.find_element(dict_elements['XPATH_menu_button'][0], dict_elements['XPATH_menu_button'][1])
+    menu_button.click()
 
-    vcid = soup.find("input", {"name": "BDC_VCID_loginCaptcha"})["value"]
-    hs = soup.find("input", {"name": "BDC_Hs_loginCaptcha"})["value"]
-    sp = soup.find("input", {"name": "BDC_SP_loginCaptcha"})["value"]
+    # Tenta encontrar a UC na lista
+    selector = f'a.list-group-item[data-value="{instalacao}"]'
+    wait = WebDriverWait(driver, 10)
 
-    return vcid, hs, sp
+    # Espera carregar a UC na lista
+    el = wait.until(EC.presence_of_element_located((dict_elements['Dinamic_Selector'], selector)))
 
-
-
-def capture_captcha_image(requests_session, img_tag, url_get_login):
-    '''
-    Captura a imagem do CAPTCHA, salva ela no diretório 'images/' 
-    e retorna a URL da imagem.
-    '''
-
-    # Acessa o atributo 'src' da tag img para obter a URL do CAPTCHA
-    captcha_src = img_tag['src']
-    captcha_url = urljoin(url_get_login, captcha_src)
-
-    # Faz a requisição para obter a imagem do CAPTCHA
-    response_img = requests_session.get(captcha_url)
-
-    # Salva a imagem do CAPTCHA no arquivo images/
-    with open("images/captcha.jpg", "wb") as f:
-        f.write(response_img.content)
-
-    return "images/captcha.jpg"
+    # Scrolla a página a fim de encontrar o elemento da UC na aba de Menu, clica no elemento quando aparece
+    driver.execute_script("arguments[0].scrollIntoView(true);", el)
+    wait.until(EC.element_to_be_clickable((dict_elements['Dinamic_Selector'], selector)))
+    driver.execute_script("arguments[0].click();", el)
+    
+    # Esperando a atualização da página
+    time.sleep(1)
