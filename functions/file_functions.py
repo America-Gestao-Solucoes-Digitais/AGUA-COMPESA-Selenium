@@ -1,5 +1,8 @@
+# Importando Modulos
+import shutil
+
+# Importando bibliotecas
 import os
-import time
 
 def verifica_fatura_bd(class_bd, tabela , data_referencia, instalacao):
     '''
@@ -28,74 +31,34 @@ def verifica_fatura_bd(class_bd, tabela , data_referencia, instalacao):
 
 
 
-# def wait_download(temp_dir, timeout=120):
-#     '''Espera até que um novo PDF completo seja baixado ou até o tempo limite.'''
-    
-#     tempo_inicial = time.time()
-#     pdfs_antes = set(f for f in os.listdir(temp_dir) if f.endswith('.pdf'))
-
-#     while True:
-#         time.sleep(1)  # Espera 1 segundos antes de verificar novamente
-
-#         arquivos = os.listdir(temp_dir)
-
-#         # Checa se ainda tem algum .crdownload
-#         if any(f.endswith('.crdownload') for f in arquivos):
-#             continue
-
-#         # Verifica se apareceu um novo PDF
-#         pdfs_atuais = set(f for f in arquivos if f.endswith('.pdf'))
-#         novos_pdfs = pdfs_atuais - pdfs_antes
-#         if novos_pdfs:
-#             print("Baixado Corretamente:", novos_pdfs)
-#             break
-
-#         # Timeout
-#         if time.time() - tempo_inicial > timeout:
-#             print(f"Tempo limite de download excedido, fatura não baixada.")
-#             break
+def mover_pdf(temp_dir, distribuidora, instalacao, cliente, path): # mover_pdf(temp_dir, ano_referencia, mes_referencia, distribuidora, instalacao, cliente, path):
+    '''Pega do diretorio temporário, altera o nome da fatura e move para o diretório final '''
     
 
-
-# def mover_pdf(temp_dir, ano_referencia, mes_referencia, distribuidora, instalacao, classe_tensao, cliente):
-#     '''Pega do diretorio temporário, altera o nome e move para o diretório final '''
-    
-#     try:
-#         # Buscar PDF no diretório temporário
-#         pdfs = [f for f in os.listdir(temp_dir) if f.endswith('.pdf')]
-#         if not pdfs:
-#             raise FileNotFoundError("Nenhum PDF encontrado no diretório temporário.")
+    try:
+        # Buscar PDF no diretório temporário
+        pdfs = [f for f in os.listdir(temp_dir) if f.endswith('.pdf')]
+        if not pdfs:
+            raise FileNotFoundError("Nenhum PDF encontrado no diretório temporário.")
         
-#         # Replace classe_tensao
-#         if classe_tensao == "Baixa Tensão":
-#             classe_tensao = "BT"
-        
-#         if classe_tensao == "Média Tensão":
-#             classe_tensao = "MT"
-        
-#         # Determina o diretorio incial e o novo nome do pdf
-#         original_path = os.path.join(temp_dir, pdfs[0])
-#         novo_nome = f"{ano_referencia}.{mes_referencia}_DIST_{distribuidora}_{instalacao}_{classe_tensao}.pdf"
+        # Determina o diretorio incial e o novo nome do pdf
+        original_path = os.path.join(temp_dir, pdfs[0])
+        #novo_nome = f"{ano_referencia}.{mes_referencia}_DIST_{distribuidora}_{cliente}_{instalacao}.pdf"
+        novo_nome = f"25.00_DIST_{distribuidora}_{cliente}_{instalacao}.pdf"
 
-#         # Determinar diretório de destino com base na classe
-#         if classe_tensao == "MT":
-#             base_dir = os.path.join(configurations.DIR_MT, cliente, "Faturas")
-#         else:
-#             base_dir = os.path.join(configurations.DIR_BT, cliente, "Faturas")
+        # Criar diretório, se não existir
+        os.makedirs(path, exist_ok=True)
+        destino_final = os.path.join(path, novo_nome)
 
-#         # Criar diretório, se não existir
-#         os.makedirs(base_dir, exist_ok=True)
-#         destino_final = os.path.join(base_dir, novo_nome)
+        # Verificar se o PDF já existe no destino
+        if os.path.exists(destino_final):
+            print(f"Arquivo {novo_nome} já existe. Removendo o PDF temporário.")
+            os.remove(original_path)
 
-#         # Verificar se o PDF já existe no destino
-#         if os.path.exists(destino_final):
-#             print(f"Arquivo {novo_nome} já existe. Removendo o PDF temporário.")
-#             os.remove(original_path)
+        else:
+        # Se não exister no destino move o PDF com o novo nome
+            shutil.move(original_path, destino_final)
+            print(f"Fatura movido com sucesso para: {destino_final}")
 
-#         else:
-#         # Se não exister no destino move o PDF com o novo nome
-#             shutil.move(original_path, destino_final)
-#             print(f"PDF movido com sucesso para: {destino_final}")
-
-#     except Exception as e:
-#         print("Erro ao mover o PDF:", e)
+    except Exception as e:
+        print("Erro ao mover o PDF:", e)

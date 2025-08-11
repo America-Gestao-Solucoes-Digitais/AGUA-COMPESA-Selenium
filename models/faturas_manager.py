@@ -3,11 +3,11 @@ import functions.file_functions as file_functions
 
 # Importando bibliotecas
 from selenium.webdriver.support.ui import WebDriverWait
-#import time
+import time
 
 class Faturas_manager:
 
-    def __init__(self, driver, temp_dir, instalacao, dict_elements):
+    def __init__(self, driver, temp_dir, instalacao, dict_elements, cliente):
         
         # Váriaveis de ambiente
         self.driver = driver
@@ -17,15 +17,18 @@ class Faturas_manager:
         self.dict_elements = dict_elements
 
         # Trazendo dados de Faturas
-        self.instalacao = instalacao
+        self.referencia = ''
         self.distribuidora = 'COMPENSA'
+        self.instalacao = instalacao
+        self.cliente = cliente
+        self.path = rf'G:\QUALIDADE\Códigos\Nova Leitura de Faturas de Agua\{cliente}\Faturas'
 
 
-        self.download_fatura()
+        self.download_fatura_atual()
     
 
 
-    def download_fatura(self):
+    def download_fatura_atual(self):
         '''
         Passo a Passo:
         - Apertar o botão de download
@@ -41,8 +44,7 @@ class Faturas_manager:
         download_button = self.driver.find_element(self.dict_elements['XPATH_Download_button'][0], self.dict_elements['XPATH_Download_button'][1])
         download_button.click()
 
-        # Aguarda carregar a fatura (ou download)
-        #file_functions.wait_download(self.temp_dir) # Não precisa, pois o código já consegue fazer 100% com o WebDriverWait, já que sempre que abrir o popup vai baixar a fatura.
+        time.sleep(3)
 
         # Aguarda a nova janela (popup) abrir
         WebDriverWait(self.driver, 10).until(lambda d: len(d.window_handles) > 1)
@@ -53,12 +55,18 @@ class Faturas_manager:
                 popup = handle
                 break
 
-
         # Alterna para o popup
         self.driver.switch_to.window(popup)
 
         # Fecha somente o popup
-        self.driver.close() 
+        self.driver.close()
+
+        # Quebrando a referencia
+        referencia_ano = self.referencia
+        referencia_mes = self.referencia
+        
+        # Alterando o nome da fatura e passando o arquivo para o caminho de leituras
+        file_functions.mover_pdf(self.temp_dir, self.distribuidora, self.instalacao, self.cliente, self.path)
 
         # Volta para a janela principal
         self.driver.switch_to.window(janela_principal)

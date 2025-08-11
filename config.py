@@ -8,6 +8,7 @@ load_dotenv()
 # Obter a chave da API
 API_KEY = os.getenv("API_KEY")
 
+# File path do captcha
 img_file_path = "images/captcha.jpg"
 
 # Urls base do Site
