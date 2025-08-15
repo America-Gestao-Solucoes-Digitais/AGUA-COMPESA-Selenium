@@ -36,26 +36,52 @@ def entry_login(driver, dict_elements, login, password, captcha_code):
 
 
 
-def entry_page_uc(driver, dict_elements, instalacao):
-    '''
-    Entra no Menu, tenta encontrar a UC, se caso tenha a UC prossegui para a página dela.
-    '''
+def entry_page_uc(driver, dict_elements, instalacao, timeout=10):
+    """
+    Entra no Menu, tenta encontrar a UC, se caso tenha a UC prossegue para a página dela.
+    Lida com elemento dinâmico que pode precisar de scroll.
+    """
 
-    # Encontra e clica na UC
-    menu_button = driver.find_element(dict_elements['XPATH_menu_button'][0], dict_elements['XPATH_menu_button'][1])
-    menu_button.click()
+    status = True  # Define status padrão
 
-    # Tenta encontrar a UC na lista
-    selector = f'a.list-group-item[data-value="{instalacao}"]'
-    wait = WebDriverWait(driver, 10)
+    try:
+        # Abre o menu
+        menu_button = driver.find_element(
+            dict_elements['XPATH_menu_button'][0],
+            dict_elements['XPATH_menu_button'][1]
+        )
+        menu_button.click()
 
-    # Espera carregar a UC na lista
-    el = wait.until(EC.presence_of_element_located((dict_elements['Dinamic_Selector'], selector)))
+        # Define seletor dinâmico
+        selector = f'a.list-group-item[data-value="{instalacao}"]'
+        wait = WebDriverWait(driver, timeout)
 
-    # Scrolla a página a fim de encontrar o elemento da UC na aba de Menu, clica no elemento quando aparece
-    driver.execute_script("arguments[0].scrollIntoView(true);", el)
-    wait.until(EC.element_to_be_clickable((dict_elements['Dinamic_Selector'], selector)))
-    driver.execute_script("arguments[0].click();", el)
-    
-    # Esperando a atualização da página
-    time.sleep(1)
+        # Espera o container que contém as UCs
+        container = wait.until(
+            EC.presence_of_element_located(
+                (dict_elements['Dinamic_Selector'], selector)
+            )
+        )
+
+        # Tenta rolar até o elemento ser clicável
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                el = driver.find_element(dict_elements['Dinamic_Selector'], selector)
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", el)
+                wait.until(EC.element_to_be_clickable((dict_elements['Dinamic_Selector'], selector)))
+                driver.execute_script("arguments[0].click();", el)
+                
+                break  # Sai do loop
+            except:
+                # Se não encontrou, rola mais um pouco
+                driver.execute_script("arguments[0].scrollTop += 100;", container)
+                time.sleep(0.2)
+
+    except Exception as e:
+        print(f"[ERRO] entry_page_uc: {e}")
+        status = False
+
+    time.sleep(3)
+
+    return status

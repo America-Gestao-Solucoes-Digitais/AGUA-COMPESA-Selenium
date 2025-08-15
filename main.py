@@ -7,10 +7,10 @@ import os
 import config
 
 # Importando bibliotecas
-from selenium.webdriver.common.by import By
 import sys
 import os
 import tempfile
+import pandas as pd
 
 # Colocando a raiz do repositório como o repositório pai
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -56,43 +56,68 @@ FIRULA:
 dict_elements = config.dict_elenments
 img_file_path = config.img_file_path
 
-login = "aguaeenergia@magazineluiza.com.br"
-senha = "Magazine@2025"
-instalacao = '2749351'
-cliente = 'MAGAZINE LUIZA'
+df_login = pd.read_excel('teste.xlsx')
 
-
-
+# Remove os zeros há esquerda
+df_login['Matricula'] = df_login['Matricula'].astype(str).str.lstrip('0')
 
 # Cria um diretório temporário para downloads
 temp_dir = tempfile.mkdtemp()
 
-# Inicializando o driver do Selenium e o driver, além disso retorna o status de carregamento do site 
-selenium_manager_instance = Selenium_manager(temp_dir)
-driver = selenium_manager_instance.driver
-status = selenium_manager_instance.status
+# Ajuste para o primeiro registro do df_login
+login_linha_anterior = ''
+senha_linha_anterior = ''
+driver = ''
+
+for i in range(len(df_login)):
+
+    linha = df_login.iloc[i]
+
+    login = linha['Login']
+    senha = linha['Senha']
+    instalacao = linha['Matricula']
+    distribuidora = linha['Distribuidora']
+    cliente = linha['Cliente']
+
+    instalacao = str(instalacao)
+
+    # Verifica se o login e senha do registro atual 
+    if login != login_linha_anterior or senha != senha_linha_anterior:
+
+        # Verifica se não é o primeiro registro do df_login
+        if driver != '':
+            driver.close()
+
+        # Inicializando o driver do Selenium e o driver, além disso retorna o status de carregamento do site 
+        selenium_manager_instance = Selenium_manager(temp_dir)
+        driver = selenium_manager_instance.driver
+        #status = selenium_manager_instance.status
 
 
 
-# Captura code_recaptcha
-Selenium_manager.captura_recaptcha(driver, dict_elements)
+        # Captura code_recaptcha
+        Selenium_manager.captura_recaptcha(driver, dict_elements)
 
-# Resolvendo o CAPTCHA usando a API do TwoCaptcha
-captcha_code = solve_captcha(img_file_path)
+        # Resolvendo o CAPTCHA usando a API do TwoCaptcha
+        captcha_code = solve_captcha(img_file_path)
 
-# Faz o login no site 
-status = site_functions.entry_login(driver, dict_elements, login, senha, captcha_code)
-
-
-
-# Entra na página da UC
-site_functions.entry_page_uc(driver, dict_elements, instalacao)
+        # Faz o login no site 
+        status = site_functions.entry_login(driver, dict_elements, login, senha, captcha_code)
 
 
-# Instancia a classe de controle de faturas
-Faturas_manager = Faturas_manager(driver, temp_dir, instalacao, dict_elements, cliente)
+
+    # Entra na página da UC
+    status = site_functions.entry_page_uc(driver, dict_elements, instalacao)
+    if status == False:
+        continue
 
 
+    # Instancia a classe de controle de faturas
+    faturas_manager = Faturas_manager(driver, temp_dir, instalacao, dict_elements, cliente)
+
+    # Salva o registro atual afim de fazer o compartivo com o próximo registro.
+    login_linha_anterior = login
+    senha_linha_anterior = senha
 
 
 driver.quit()

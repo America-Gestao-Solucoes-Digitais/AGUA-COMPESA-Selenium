@@ -3,6 +3,7 @@ import functions.file_functions as file_functions
 
 # Importando bibliotecas
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 
 class Faturas_manager:
@@ -18,10 +19,14 @@ class Faturas_manager:
 
         # Trazendo dados de Faturas
         self.referencia = ''
-        self.distribuidora = 'COMPENSA'
+        self.distribuidora = 'COMPESA'
         self.instalacao = instalacao
         self.cliente = cliente
-        self.path = rf'G:\QUALIDADE\Códigos\Nova Leitura de Faturas de Agua\{cliente}\Faturas'
+
+        if cliente == 'MAGAZINE LUIZA':
+            self.path = rf'G:\QUALIDADE\Códigos\Nova Leitura de Faturas de Agua\{cliente}\Faturas'
+        elif cliente == 'DASA':
+            self.path = rf'G:\QUALIDADE\Códigos\Nova Leitura de Faturas de Agua\Faturas'
 
 
         self.download_fatura_atual()
@@ -37,11 +42,18 @@ class Faturas_manager:
         - Fecha o popup
         '''
 
+        time.sleep(3)
+
         # Salva a Janela atual como principal
         janela_principal = self.driver.current_window_handle
 
         # Clica no botão de download
-        download_button = self.driver.find_element(self.dict_elements['XPATH_Download_button'][0], self.dict_elements['XPATH_Download_button'][1])
+        download_button = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable((
+                self.dict_elements['XPATH_Download_button'][0],
+                self.dict_elements['XPATH_Download_button'][1]
+            ))
+        )
         download_button.click()
 
         time.sleep(3)
@@ -62,8 +74,8 @@ class Faturas_manager:
         self.driver.close()
 
         # Quebrando a referencia
-        referencia_ano = self.referencia
-        referencia_mes = self.referencia
+        # referencia_ano = self.referencia
+        # referencia_mes = self.referencia
         
         # Alterando o nome da fatura e passando o arquivo para o caminho de leituras
         file_functions.mover_pdf(self.temp_dir, self.distribuidora, self.instalacao, self.cliente, self.path)
