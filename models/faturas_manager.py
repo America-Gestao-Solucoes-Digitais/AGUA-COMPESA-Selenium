@@ -4,11 +4,29 @@ import functions.file_functions as file_functions
 # Importando bibliotecas
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+import pandas as pd
 import time
+
+
+def extrair_faturas_por_titulo(titulo_texto, status, soup):
+    """Procura um h3 com texto igual ao título e extrai a tabela logo abaixo"""
+    dados = []
+    titulo = soup.find("h3", string=lambda t: t and titulo_texto in t)
+    if titulo:
+        tabela = titulo.find_next("table")
+        for linha in tabela.select("tbody tr"):
+            colunas = linha.find_all("td")
+            if len(colunas) >= 2:
+                mes_ano = colunas[0].get_text(strip=True)
+                valor = colunas[1].get_text(strip=True).replace("R$", "").strip()
+                dados.append({"Mês/Ano": mes_ano, "Valor": valor, "Status": status})
+    return dados
+
 
 class Faturas_manager:
 
-    def __init__(self, driver, temp_dir, html_page, instalacao, dict_elements, cliente):
+    def __init__(self, driver, temp_dir, dict_elements,  html_page, instalacao, cliente):
         
         # Váriaveis de ambiente
         self.driver = driver
@@ -16,6 +34,9 @@ class Faturas_manager:
 
         # Configurações de elementos da página web
         self.dict_elements = dict_elements
+
+        # Pegando o HTML da página da UC
+        self.html = html_page
 
         # Trazendo dados de Faturas
         self.referencia = ''
@@ -29,24 +50,25 @@ class Faturas_manager:
         elif cliente == 'DASA':
             self.path = rf'G:\QUALIDADE\Códigos\Nova Leitura de Faturas de Agua\Faturas'
 
-
+    
 
     def status_fatura_atual(self):
-        '''
-        Passo a Passo:
-        - Verifica se a fatura atual está disponível
-        - Retorna o status da fatura
-        '''
-        status = False
+        '''Pegando o status da fatura atual a partir do html_page'''
 
-        try:
-            # Lógica para verificar o status da fatura atual
-            status = True
-        except:
-            print('Erro ao verificar o status da fatura atual')
+        soup = BeautifulSoup(self.html, "html.parser")
 
-        return status
+        # Extrair baseado no título
+        faturas = []
+        faturas.extend(extrair_faturas_por_titulo("Faturas em Aberto", "Aberto", soup))
+        faturas.extend(extrair_faturas_por_titulo("Faturas Pagas", "Pago", soup))
 
+        # Verifica se não tem nenhuma fatura em aberto
+        fatura_aberta = faturas[faturas["Status"] == "Aberto"].empty
+
+        # Criar DataFrame
+        df_faturas = pd.DataFrame(faturas)
+        
+        return df_faturas, fatura_aberta
 
 
     def download_fatura_atual(self):

@@ -19,7 +19,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 Coisas para Criar no código:
 
 - Capturar Status
-- Capturar Referencia (html)
+    - Fazer inserção dos status
+- Capturar Referencia (html) 
 - Capturar Histórico (html)
     - Pegar as faturas dos últimos 6 meses
 
@@ -34,11 +35,14 @@ Coisas para Criar no código:
     - insert
 '''
 
+
+
 # Variaveis de AMBIENTE
 dict_elements = config.dict_elenments
 img_file_path = config.img_file_path
 
 df_login = pd.read_excel('teste.xlsx')
+df_login_base = df_login
 
 # Remove os zeros há esquerda
 df_login['Matricula'] = df_login['Matricula'].astype(str).str.lstrip('0')
@@ -46,10 +50,14 @@ df_login['Matricula'] = df_login['Matricula'].astype(str).str.lstrip('0')
 # Cria um diretório temporário para downloads
 temp_dir = tempfile.mkdtemp()
 
+
+
 # Ajuste para o primeiro registro do df_login
 login_linha_anterior = ''
 senha_linha_anterior = ''
 driver = ''
+
+
 
 for i in range(len(df_login)):
 
@@ -62,6 +70,8 @@ for i in range(len(df_login)):
     cliente = linha['Cliente']
 
     instalacao = str(instalacao)
+
+
 
     # Verifica se o login e senha do registro atual 
     if login != login_linha_anterior or senha != senha_linha_anterior:
@@ -93,20 +103,28 @@ for i in range(len(df_login)):
     if status == False:
         continue
 
+
+
     # Captura o html da página
     html_page = driver.page_source
 
     # Instancia a classe de controle de faturas
-    faturas_manager = Faturas_manager(driver, temp_dir, html_page, instalacao, dict_elements, cliente)
+    faturas_manager = Faturas_manager(driver, temp_dir, dict_elements, html_page, instalacao, cliente)
+
+    # Pega o status de acordo com uc/referencia
+    df_faturas, fatura_aberta = faturas_manager.status_fatura_atual()
+    if df_faturas.empty or fatura_aberta:
+        continue
 
     # Pegando, renomeando e movendo as faturas atuais (mais recentes)
     status = faturas_manager.download_fatura_atual()
     if status == False:
         continue
 
+
+
     # Salva o registro atual afim de fazer o compartivo com o próximo registro.
     login_linha_anterior = login
     senha_linha_anterior = senha
-
 
 driver.quit()

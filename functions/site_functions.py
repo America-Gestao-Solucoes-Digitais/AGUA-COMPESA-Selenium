@@ -10,6 +10,8 @@ def entry_login(driver, dict_elements, login, password, captcha_code):
     Encontra os elementos de login do navegador, inputa os dados e faz login.
     '''
 
+    status = False
+
     try:
         # Encontra o campo e da input
         campo_login = driver.find_element(dict_elements['NAME_login'][0], dict_elements['NAME_login'][1])
@@ -26,6 +28,7 @@ def entry_login(driver, dict_elements, login, password, captcha_code):
     
         # Verificar se realmente foi feito o login (Não um falso verdadeiro)
 
+        status = True
         return status
 
     except Exception as e:
