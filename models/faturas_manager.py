@@ -8,7 +8,7 @@ import time
 
 class Faturas_manager:
 
-    def __init__(self, driver, temp_dir, instalacao, dict_elements, cliente):
+    def __init__(self, driver, temp_dir, html_page, instalacao, dict_elements, cliente):
         
         # Váriaveis de ambiente
         self.driver = driver
@@ -23,14 +23,30 @@ class Faturas_manager:
         self.instalacao = instalacao
         self.cliente = cliente
 
+        # Configurando o caminho para cada cliente
         if cliente == 'MAGAZINE LUIZA':
             self.path = rf'G:\QUALIDADE\Códigos\Nova Leitura de Faturas de Agua\{cliente}\Faturas'
         elif cliente == 'DASA':
             self.path = rf'G:\QUALIDADE\Códigos\Nova Leitura de Faturas de Agua\Faturas'
 
 
-        self.download_fatura_atual()
-    
+
+    def status_fatura_atual(self):
+        '''
+        Passo a Passo:
+        - Verifica se a fatura atual está disponível
+        - Retorna o status da fatura
+        '''
+        status = False
+
+        try:
+            # Lógica para verificar o status da fatura atual
+            status = True
+        except:
+            print('Erro ao verificar o status da fatura atual')
+
+        return status
+
 
 
     def download_fatura_atual(self):
@@ -47,38 +63,50 @@ class Faturas_manager:
         # Salva a Janela atual como principal
         janela_principal = self.driver.current_window_handle
 
-        # Clica no botão de download
-        download_button = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable((
-                self.dict_elements['XPATH_Download_button'][0],
-                self.dict_elements['XPATH_Download_button'][1]
-            ))
-        )
-        download_button.click()
+        status = False
 
-        time.sleep(3)
+        try:
 
-        # Aguarda a nova janela (popup) abrir
-        WebDriverWait(self.driver, 10).until(lambda d: len(d.window_handles) > 1)
+            # Clica no botão de download
+            download_button = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((
+                    self.dict_elements['XPATH_Download_button'][0],
+                    self.dict_elements['XPATH_Download_button'][1]
+                ))
+            )
+            download_button.click()
 
-        # Identifica a nova janela (popup)
-        for handle in self.driver.window_handles:
-            if handle != janela_principal:
-                popup = handle
-                break
+            time.sleep(3)
 
-        # Alterna para o popup
-        self.driver.switch_to.window(popup)
+            # Aguarda a nova janela (popup) abrir
+            WebDriverWait(self.driver, 10).until(lambda d: len(d.window_handles) > 1)
 
-        # Fecha somente o popup
-        self.driver.close()
+            # Identifica a nova janela (popup)
+            for handle in self.driver.window_handles:
+                if handle != janela_principal:
+                    popup = handle
+                    break
 
-        # Quebrando a referencia
-        # referencia_ano = self.referencia
-        # referencia_mes = self.referencia
+            # Alterna para o popup
+            self.driver.switch_to.window(popup)
+
+            # Fecha somente o popup
+            self.driver.close()
+
+
+            # Quebrando a referencia
+            # referencia_ano = self.referencia
+            # referencia_mes = self.referencia
         
-        # Alterando o nome da fatura e passando o arquivo para o caminho de leituras
-        file_functions.mover_pdf(self.temp_dir, self.distribuidora, self.instalacao, self.cliente, self.path)
+            # Alterando o nome da fatura e passando o arquivo para o caminho de leituras
+            file_functions.mover_pdf(self.temp_dir, self.distribuidora, self.instalacao, self.cliente, self.path)
 
-        # Volta para a janela principal
-        self.driver.switch_to.window(janela_principal)
+            # Volta para a janela principal
+            self.driver.switch_to.window(janela_principal)
+
+            status = True
+            return status
+
+        except:
+            print('[ERROR] Fatura atual não encontrada.')
+            return status

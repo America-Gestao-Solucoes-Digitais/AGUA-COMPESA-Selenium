@@ -79,7 +79,7 @@ def entry_page_uc(driver, dict_elements, instalacao, timeout=10):
                 time.sleep(0.2)
 
     except Exception as e:
-        print(f"[ERRO] entry_page_uc: {e}")
+        print(f"[ERRO] UC não encontrada.")
         status = False
 
     time.sleep(3)

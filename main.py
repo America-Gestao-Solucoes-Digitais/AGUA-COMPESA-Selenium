@@ -18,38 +18,20 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 '''
 Coisas para Criar no código:
 
-- Capturar Status 
-- Capturar Referencia
-
-- Hístorico
+- Capturar Status
+- Capturar Referencia (html)
+- Capturar Histórico (html)
     - Pegar as faturas dos últimos 6 meses
 
-- Fazer o WebWait das coisas (FEITO)
-- Pegar o Status e a Nomeclatura da Fatura Correta (FEITO)
-- Pegar as Faturas e construir a classe de Faturas (FEITO)
+- Fazer um tratamento de erros:
+    - Fazer o WebWait das coisas
+    - Try e Except
+    - Fazer logs para erros
 
-- Fazer com que o código pegue mais de uma mátricula no mesmo login
-    - Tirar o pop-up e manter a página principal (FEITO)
-    - fazer um loop que identifique a próxima UC do mesmo login
-
-- Verificar de login e senha (Afim de manter na mesma Sessão)
-    - Necessário criar uma base de dados teste
-    - Criar um repositorio temporario
-
-- Criar um banco de dados ACCESS (temporário) (EXCEL)
+- Criar um banco de dados ACCESS (temporário) (EXCEL) (Atualizar para SQL)
     - Status
     - Faturas já baixadas
     - insert
-
-PRÓXIMOS PASSOS:
-- Ver as Faturas de Hístorico, pegar faturas que não estão no principal
-
-FIRULA:
-- Criar um dataframe com os logs (facilitar a manutenção dos logins e do código)
-- Criar Validador de excessões afim de continuar o código e ser base para os logs
-    - Try e Except
-- Criar um log de quais não estão em dia, quais são as faltantes.
-
 '''
 
 # Variaveis de AMBIENTE
@@ -111,9 +93,16 @@ for i in range(len(df_login)):
     if status == False:
         continue
 
+    # Captura o html da página
+    html_page = driver.page_source
 
     # Instancia a classe de controle de faturas
-    faturas_manager = Faturas_manager(driver, temp_dir, instalacao, dict_elements, cliente)
+    faturas_manager = Faturas_manager(driver, temp_dir, html_page, instalacao, dict_elements, cliente)
+
+    # Pegando, renomeando e movendo as faturas atuais (mais recentes)
+    status = faturas_manager.download_fatura_atual()
+    if status == False:
+        continue
 
     # Salva o registro atual afim de fazer o compartivo com o próximo registro.
     login_linha_anterior = login
