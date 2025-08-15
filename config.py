@@ -5,6 +5,17 @@ import os
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
 
+
+
+# Varíaveis do banco de dados (.env)
+username = os.getenv("USERNAME_DB")
+password = os.getenv("PASSWORD_DB")
+server = os.getenv("SERVER")
+database = os.getenv("DATABASE")
+port = os.getenv("PORT")
+
+
+
 # Obter a chave da API
 API_KEY = os.getenv("API_KEY")
 

@@ -1,7 +1,9 @@
 # Importando Modulos
+from models.database_mysql_manager import Manage_database
 from models.selenium_manager import Selenium_manager
 from models.faturas_manager import Faturas_manager
 from functions.solver_two_captcha import solve_captcha
+from functions.pandas_fuctions import extrai_dados_df_login
 import functions.site_functions as site_functions
 import os
 import config
@@ -18,8 +20,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 '''
 Coisas para Criar no código:
 
-- Capturar Status
-    - Fazer inserção dos status
+- Pegar os dados de login direto pelo banco de dados
+
 - Capturar Referencia (html) 
 - Capturar Histórico (html)
     - Pegar as faturas dos últimos 6 meses
@@ -30,7 +32,6 @@ Coisas para Criar no código:
     - Fazer logs para erros
 
 - Criar um banco de dados ACCESS (temporário) (EXCEL) (Atualizar para SQL)
-    - Status
     - Faturas já baixadas
     - insert
 '''
@@ -45,7 +46,7 @@ df_login = pd.read_excel('teste.xlsx')
 df_login_base = df_login
 
 # Remove os zeros há esquerda
-df_login['Matricula'] = df_login['Matricula'].astype(str).str.lstrip('0')
+df_login['Matricula_Pesquisa'] = df_login['Matricula'].astype(str).str.lstrip('0')
 
 # Cria um diretório temporário para downloads
 temp_dir = tempfile.mkdtemp()
@@ -63,15 +64,7 @@ for i in range(len(df_login)):
 
     linha = df_login.iloc[i]
 
-    login = linha['Login']
-    senha = linha['Senha']
-    instalacao = linha['Matricula']
-    distribuidora = linha['Distribuidora']
-    cliente = linha['Cliente']
-
-    instalacao = str(instalacao)
-
-
+    login, senha, instalacao, instalacao_pesquisa, distribuidora, cliente = extrai_dados_df_login(linha)
 
     # Verifica se o login e senha do registro atual 
     if login != login_linha_anterior or senha != senha_linha_anterior:
@@ -99,21 +92,31 @@ for i in range(len(df_login)):
 
 
     # Entra na página da UC
-    status = site_functions.entry_page_uc(driver, dict_elements, instalacao)
+    status = site_functions.entry_page_uc(driver, dict_elements, instalacao_pesquisa)
     if status == False:
         continue
 
 
 
-    # Captura o html da página
+    # Captura o html da página da UC
     html_page = driver.page_source
 
+
+
+    # Abre uma nova conexão com o Banco (Estava dando erro de protocolo do mysql depois de um tempo)
+    database_manager = Manage_database()
+
     # Instancia a classe de controle de faturas
-    faturas_manager = Faturas_manager(driver, temp_dir, dict_elements, html_page, instalacao, cliente)
+    faturas_manager = Faturas_manager(driver, database_manager, temp_dir, dict_elements, html_page, instalacao, cliente)
 
     # Pega o status de acordo com uc/referencia
-    df_faturas, fatura_aberta = faturas_manager.status_fatura_atual()
-    if df_faturas.empty or fatura_aberta:
+    df_faturas, sem_fatura_aberta = faturas_manager.status_fatura_atual()
+    if df_faturas.empty or sem_fatura_aberta:
+
+        if sem_fatura_aberta:
+            print('[INFO] Não há faturas em aberto.')
+            continue
+
         continue
 
     # Pegando, renomeando e movendo as faturas atuais (mais recentes)
@@ -121,10 +124,14 @@ for i in range(len(df_login)):
     if status == False:
         continue
 
+    # Fecha a conexão com o banco de dados
+    database_manager.close_connection()
+
 
 
     # Salva o registro atual afim de fazer o compartivo com o próximo registro.
     login_linha_anterior = login
     senha_linha_anterior = senha
 
+# Fecha o driver do Selenium no final do código
 driver.quit()

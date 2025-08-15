@@ -39,7 +39,7 @@ def entry_login(driver, dict_elements, login, password, captcha_code):
 
 
 
-def entry_page_uc(driver, dict_elements, instalacao, timeout=10):
+def entry_page_uc(driver, dict_elements, instalacao_pesquisa, timeout=10):
     """
     Entra no Menu, tenta encontrar a UC, se caso tenha a UC prossegue para a página dela.
     Lida com elemento dinâmico que pode precisar de scroll.
@@ -56,7 +56,7 @@ def entry_page_uc(driver, dict_elements, instalacao, timeout=10):
         menu_button.click()
 
         # Define seletor dinâmico
-        selector = f'a.list-group-item[data-value="{instalacao}"]'
+        selector = f'a.list-group-item[data-value="{instalacao_pesquisa}"]'
         wait = WebDriverWait(driver, timeout)
 
         # Espera o container que contém as UCs

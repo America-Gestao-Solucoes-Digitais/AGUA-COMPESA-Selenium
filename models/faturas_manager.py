@@ -1,10 +1,13 @@
 # Importando Modulos
+from functions.pandas_fuctions import formatar_datas
 import functions.file_functions as file_functions
+
 
 # Importando bibliotecas
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
+from datetime import datetime
 import pandas as pd
 import time
 
@@ -20,17 +23,18 @@ def extrair_faturas_por_titulo(titulo_texto, status, soup):
             if len(colunas) >= 2:
                 mes_ano = colunas[0].get_text(strip=True)
                 valor = colunas[1].get_text(strip=True).replace("R$", "").strip()
-                dados.append({"Mês/Ano": mes_ano, "Valor": valor, "Status": status})
+                dados.append({"data_referencia": mes_ano, "valor": valor, "status_fatura": status})
     return dados
 
 
 class Faturas_manager:
 
-    def __init__(self, driver, temp_dir, dict_elements,  html_page, instalacao, cliente):
+    def __init__(self, driver, drive_manage_sql, temp_dir, dict_elements,  html_page, instalacao, cliente):
         
         # Váriaveis de ambiente
         self.driver = driver
         self.temp_dir = temp_dir
+        self.drive_manage_sql = drive_manage_sql
 
         # Configurações de elementos da página web
         self.dict_elements = dict_elements
@@ -39,7 +43,6 @@ class Faturas_manager:
         self.html = html_page
 
         # Trazendo dados de Faturas
-        self.referencia = ''
         self.distribuidora = 'COMPESA'
         self.instalacao = instalacao
         self.cliente = cliente
@@ -53,22 +56,50 @@ class Faturas_manager:
     
 
     def status_fatura_atual(self):
-        '''Pegando o status da fatura atual a partir do html_page'''
+        '''
+        Pegando o status da fatura atual a partir do html_page (Faturas em Aberto e Faturas Pagas)
+        
+        Inseri os dados de df_status_faturas na tabela 'tb_status_pagamento_gestao_faturas' no banco de dados.
+        '''
 
         soup = BeautifulSoup(self.html, "html.parser")
 
         # Extrair baseado no título
         faturas = []
-        faturas.extend(extrair_faturas_por_titulo("Faturas em Aberto", "Aberto", soup))
+        faturas.extend(extrair_faturas_por_titulo("Faturas em Aberto", "Em aberto", soup))
         faturas.extend(extrair_faturas_por_titulo("Faturas Pagas", "Pago", soup))
-
-        # Verifica se não tem nenhuma fatura em aberto
-        fatura_aberta = faturas[faturas["Status"] == "Aberto"].empty
 
         # Criar DataFrame
         df_faturas = pd.DataFrame(faturas)
-        
-        return df_faturas, fatura_aberta
+
+        # Formatar as datas
+        df_faturas = formatar_datas(df_faturas)
+
+        # Verifica se não tem nenhuma fatura em aberto
+        sem_fatura_aberta = df_faturas[df_faturas["status_fatura"] == "Em aberto"]
+        sem_fatura_aberta = sem_fatura_aberta.empty
+
+        for _, row in df_faturas.iterrows():
+
+            # now, datetime
+            now = datetime.now()
+            datatime = now.strftime('%Y-%m-%d')
+            data_status = datatime
+
+            # Puxando dados do DataFrame df_status_faturas
+            instalacao = self.instalacao
+            data_referencia = row['data_referencia']
+            data_vencimento = row['data_referencia']
+            distribuidora = self.distribuidora
+            status_fatura = row['status_fatura']
+
+            print(data_status, instalacao, data_referencia, data_vencimento, distribuidora, status_fatura)
+
+            self.drive_manage_sql.insert_status(data_status, instalacao, data_referencia, distribuidora, data_vencimento, status_fatura)
+
+
+        return df_faturas, sem_fatura_aberta
+
 
 
     def download_fatura_atual(self):

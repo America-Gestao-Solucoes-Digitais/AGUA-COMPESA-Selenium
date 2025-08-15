@@ -16,6 +16,8 @@ class Sqlalchemy_mysql_connect():
         self.database = config.database
         self.engine = self.connect()
 
+
+
     def connect(self):
         '''Cria e retorna uma conexão com o MySQL'''
 
@@ -34,6 +36,8 @@ class Sqlalchemy_mysql_connect():
         except Exception as e:
             print(f"Erro ao conectar ao MySQL: {e}")
             return None
+    
+
     
     def close_connection(self):
         '''Fecha a conexão com o banco de dados'''

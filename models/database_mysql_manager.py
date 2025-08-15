@@ -98,7 +98,7 @@ class Manage_database(driver):
                         INSERT INTO tb_status_pagamento_gestao_faturas 
                         (DATA_STATUS, INSTALACAO, REFERENCIA, DISTRIBUIDORA, DT_VENCIMENTO, STATUS_PAGAMENTO, COMENTARIO) 
                         VALUES 
-                        ('{data_status}', '{instalacao}', '{referencia}', '{distribuidora}', '{vencimento}', '{status}', '')
+                        ('{data_status}', '{instalacao}', '{referencia}', '{distribuidora}', '{vencimento}', '{status}', 'Água')
                         '''
                         
                         connection.execute(text(query))
