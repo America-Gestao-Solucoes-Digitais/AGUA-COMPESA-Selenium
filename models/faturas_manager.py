@@ -12,6 +12,7 @@ import pandas as pd
 import time
 
 
+
 def extrair_faturas_por_titulo(titulo_texto, status, soup):
     """Procura um h3 com texto igual ao título e extrai a tabela logo abaixo"""
     dados = []

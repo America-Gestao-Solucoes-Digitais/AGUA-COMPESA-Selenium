@@ -22,7 +22,7 @@ Coisas para Criar no código:
 
 - Pegar os dados de login direto pelo banco de dados
 
-- Capturar Referencia (html) 
+- Capturar Referencia (html)
 - Capturar Histórico (html)
     - Pegar as faturas dos últimos 6 meses
 
@@ -31,8 +31,8 @@ Coisas para Criar no código:
     - Try e Except
     - Fazer logs para erros
 
-- Criar um banco de dados ACCESS (temporário) (EXCEL) (Atualizar para SQL)
-    - Faturas já baixadas
+- Criar um banco de dados (Atualizar para SQL)
+    - Faturas já baixadas (Precisa da referencia)
     - insert
 '''
 
@@ -62,8 +62,6 @@ df_login['INSTALACAO_MATRICULA_PESQUISA'] = df_login['INSTALACAO_MATRICULA'].ast
 # Cria um diretório temporário para downloads
 temp_dir = tempfile.mkdtemp()
 
-
-
 # Ajuste para o primeiro registro do df_login
 login_linha_anterior = ''
 senha_linha_anterior = ''
@@ -76,6 +74,8 @@ for i in range(len(df_login)):
     linha = df_login.iloc[i]
 
     login, senha, instalacao, instalacao_pesquisa, distribuidora, cliente = extrai_dados_df_login(linha)
+
+
 
     # Verifica se o login e senha do registro atual 
     if login != login_linha_anterior or senha != senha_linha_anterior:
