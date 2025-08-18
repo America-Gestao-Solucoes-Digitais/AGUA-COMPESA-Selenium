@@ -37,16 +37,27 @@ Coisas para Criar no código:
 '''
 
 
-
 # Variaveis de AMBIENTE
 dict_elements = config.dict_elenments
 img_file_path = config.img_file_path
 
-df_login = pd.read_excel('teste.xlsx')
-df_login_base = df_login
+
+
+database_manager = Manage_database()
+
+# Lê a tabela baseado no Distribuidor
+df_login = database_manager.read_table('tb_clientes_gestao_faturas', where=config.distribuidora_where)
+
+# Fecha a conexão com o banco de dados
+database_manager.close_connection()
+
+
 
 # Remove os zeros há esquerda
-df_login['Matricula_Pesquisa'] = df_login['Matricula'].astype(str).str.lstrip('0')
+df_login['INSTALACAO_MATRICULA_PESQUISA'] = df_login['INSTALACAO_MATRICULA'].astype(str).str.lstrip('0')
+
+
+
 
 # Cria um diretório temporário para downloads
 temp_dir = tempfile.mkdtemp()

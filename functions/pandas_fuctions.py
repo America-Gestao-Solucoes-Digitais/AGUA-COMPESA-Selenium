@@ -2,12 +2,12 @@ import pandas as pd
 
 def extrai_dados_df_login(linha):
 
-    login = linha['Login']
-    senha = linha['Senha']
-    instalacao = linha['Matricula']
-    instalacao_pesquisa = linha['Matricula_Pesquisa']
-    distribuidora = linha['Distribuidora']
-    cliente = linha['Cliente']
+    login = linha['LOGIN']
+    senha = linha['SENHA']
+    instalacao = linha['INSTALACAO_MATRICULA']
+    instalacao_pesquisa = linha['INSTALACAO_MATRICULA_PESQUISA']
+    distribuidora = linha['DISTRIBUIDORA']
+    cliente = linha['GRUPO']
 
     instalacao = str(instalacao)
 

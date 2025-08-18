@@ -15,6 +15,8 @@ database = os.getenv("DATABASE")
 port = os.getenv("PORT")
 
 
+# Filtro para a leitura da tabela no SQL
+distribuidora_where = "DISTRIBUIDORA = 'COMPESA'"
 
 # Obter a chave da API
 API_KEY = os.getenv("API_KEY")
