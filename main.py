@@ -3,7 +3,7 @@ from models.database_mysql_manager import Manage_database
 from models.selenium_manager import Selenium_manager
 from models.faturas_manager import Faturas_manager
 from functions.solver_two_captcha import solve_captcha
-from functions.pandas_fuctions import extrai_dados_df_login
+import functions.pandas_fuctions as pandas_functions
 import functions.site_functions as site_functions
 import os
 import config
@@ -47,11 +47,9 @@ database_manager = Manage_database()
 df_login = database_manager.read_table('tb_clientes_gestao_faturas', where=config.distribuidora_where)
 database_manager.close_connection()
 
-# Remove os zeros há esquerda (afim de bater com o dados do site)
-df_login['INSTALACAO_MATRICULA_PESQUISA'] = df_login['INSTALACAO_MATRICULA'].astype(str).str.lstrip('0')
+df_login = pandas_functions.ajusta_df_login(df_login)
 
-# Cria um diretório temporário para downloads de faturas
-# Diretorio base para o Selenium
+# Cria um diretório temporário para downloads de faturas (Usado pelo Selenium)
 temp_dir = tempfile.mkdtemp()
 
 # Declarando variaveis para controle de login
@@ -64,7 +62,7 @@ for i in range(len(df_login)):
 
     # Pegando os dados do registro atual
     linha = df_login.iloc[i]
-    login, senha, instalacao, instalacao_pesquisa, distribuidora, cliente = extrai_dados_df_login(linha)
+    login, senha, instalacao, instalacao_pesquisa, distribuidora, cliente = pandas_functions.extrai_dados_df_login(linha)
 
     # Verifica se o login e senha do registro atual são diferentes do registro anterior
     if login != login_linha_anterior or senha != senha_linha_anterior:

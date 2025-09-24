@@ -47,13 +47,18 @@ def entry_page_uc(driver, dict_elements, instalacao_pesquisa, timeout=10):
 
     status = True  # Define status padrão
 
+    side_menu = driver.find_element(dict_elements['XPATH_side_menu'][0], dict_elements['XPATH_side_menu'][1])
+
     try:
-        # Abre o menu
-        menu_button = driver.find_element(
-            dict_elements['XPATH_menu_button'][0],
-            dict_elements['XPATH_menu_button'][1]
-        )
-        menu_button.click()
+        if "show-side-menu" in side_menu.get_attribute("class"):
+            pass
+        else:
+            # Se o menu não estiver visível, clica no botão para abrir
+            menu_button = driver.find_element(
+                dict_elements['XPATH_menu_button'][0],
+                dict_elements['XPATH_menu_button'][1]
+            )
+            menu_button.click()
 
         # Define seletor dinâmico
         selector = f'a.list-group-item[data-value="{instalacao_pesquisa}"]'
@@ -85,7 +90,5 @@ def entry_page_uc(driver, dict_elements, instalacao_pesquisa, timeout=10):
     except Exception as e:
         print(f"[ERRO] UC não encontrada.")
         status = False
-
-    time.sleep(3)
 
     return status

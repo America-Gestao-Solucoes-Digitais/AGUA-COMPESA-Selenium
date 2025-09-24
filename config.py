@@ -37,6 +37,7 @@ dict_elenments = {
     'NAME_captcha_code': [By.NAME, 'captchaCode'],
     'XPATH_login_button': [By.XPATH, '/html/body/form/div[5]/div/div/div[5]/div/input[1]'],
     'XPATH_menu_button': [By.XPATH, '//*[@id="btn-side-menu"]/span'],
+    'XPATH_side_menu': [By.XPATH, '//*[@id="side-menu"]'],
     'XPATH_download_button': [By.XPATH, '//*[@id="seg-via-conta"]/form/table[1]/tbody/tr/td[3]/div[1]/a'],
     'Dinamic_Selector': By.CSS_SELECTOR, # Somente esse elemento que não foi possível colocar aqui, pois ele é dinamico, está no site_functions.
     'XPATH_Download_button' : [By.XPATH, '//*[@id="seg-via-conta"]/form/table[1]/tbody/tr/td[3]/div[1]/a']
