@@ -7,7 +7,6 @@ import functions.file_functions as file_functions
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
-from datetime import datetime
 import pandas as pd
 import time
 
@@ -58,9 +57,8 @@ class Faturas_manager:
 
     def status_fatura_atual(self):
         '''
-        Pegando o status da fatura atual a partir do html_page (Faturas em Aberto e Faturas Pagas)
-        
-        Inseri os dados de df_status_faturas na tabela 'tb_status_pagamento_gestao_faturas' no banco de dados.
+        Pegando o status da fatura atual a partir do html_page (Faturas em Aberto e Faturas Pagas),
+        Cria dois DataFrames, um com todas as faturas e outro somente com as faturas em aberto.
         '''
 
         soup = BeautifulSoup(self.html, "html.parser")
@@ -79,81 +77,74 @@ class Faturas_manager:
         # Verifica se não tem nenhuma fatura em aberto
         faturas_abertas = df_faturas[df_faturas["status_fatura"] == "Em aberto"]
 
-
-
-        for _, row in df_faturas.iterrows():
-
-            # now, datetime
-            now = datetime.now()
-            datatime = now.strftime('%Y-%m-%d')
-            data_status = datatime
-
-            # Puxando dados do DataFrame df_status_faturas
-            instalacao = self.instalacao
-            data_referencia = row['data_referencia']
-            data_vencimento = row['data_referencia']
-            distribuidora = self.distribuidora
-            status_fatura = row['status_fatura']
-
-            #print(data_status, instalacao, data_referencia, data_vencimento, distribuidora, status_fatura)
-
         return df_faturas, faturas_abertas
 
 
 
-    def download_fatura_atual(self):
-        '''
-        Passo a Passo:
-        - Apertar o botão de download
-        - Faz abri o popup
-        - Faz o download da fatura
-        - Fecha o popup
-        '''
+    def download_faturas(self):
+        """
+        Função responsável por fazer o download de TODAS as faturas disponíveis na tela.
+        """
 
         time.sleep(3)
-
-        # Salva a Janela atual como principal
         janela_principal = self.driver.current_window_handle
-
         status = False
 
         try:
-
-            # Clica no botão de download
-            download_button = WebDriverWait(self.driver, 10).until(
-                EC.element_to_be_clickable((
+            # Localiza TODOS os botões de download (lista)
+            botoes_download = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_all_elements_located((
                     self.dict_elements['XPATH_Download_button'][0],
                     self.dict_elements['XPATH_Download_button'][1]
                 ))
             )
-            download_button.click()
 
-            time.sleep(3)
+            print(f"[INFO] Encontrados {len(botoes_download)} botões de download.")
 
-            # Aguarda a nova janela (popup) abrir
-            WebDriverWait(self.driver, 10).until(lambda d: len(d.window_handles) > 1)
+            for i, botao in enumerate(botoes_download, start=1):
+                try:
+                    # Precisa garantir que o elemento ainda esteja clicável a cada iteração
+                    botao = WebDriverWait(self.driver, 10).until(
+                        EC.element_to_be_clickable((
+                            self.dict_elements['XPATH_Download_button'][0],
+                            self.dict_elements['XPATH_Download_button'][1]
+                        ))
+                    )
+                    botao.click()
+                    time.sleep(3)
 
-            # Identifica a nova janela (popup)
-            for handle in self.driver.window_handles:
-                if handle != janela_principal:
-                    popup = handle
-                    break
+                    # Aguarda a nova janela (popup) abrir
+                    WebDriverWait(self.driver, 10).until(lambda d: len(d.window_handles) > 1)
 
-            # Alterna para o popup
-            self.driver.switch_to.window(popup)
+                    # Identifica o popup
+                    for handle in self.driver.window_handles:
+                        if handle != janela_principal:
+                            popup = handle
+                            break
 
-            # Fecha somente o popup
-            self.driver.close()
-        
-            # Alterando o nome da fatura e passando o arquivo para o caminho de leituras
-            file_functions.mover_pdf(self.temp_dir, self.distribuidora, self.instalacao, self.cliente, self.path)
+                    # Alterna para o popup
+                    self.driver.switch_to.window(popup)
 
-            # Volta para a janela principal
-            self.driver.switch_to.window(janela_principal)
+                    # Fecha somente o popup
+                    self.driver.close()
 
-            status = True
+                    # Movimenta o arquivo baixado
+                    file_functions.mover_pdf(
+                        self.temp_dir, self.distribuidora,
+                        self.instalacao, self.cliente, self.path, i
+                    )
+
+                    # Volta para a janela principal
+                    self.driver.switch_to.window(janela_principal)
+
+                    print(f"[INFO] Fatura {i} baixada com sucesso.")
+                    status = True
+
+                except Exception as e:
+                    print(f"[ERROR] Erro ao baixar fatura {i}: {e}")
+
             return status
 
-        except:
-            print('[ERROR] Fatura atual não encontrada.')
+        except Exception as e:
+            print(f"[ERROR] Nenhuma fatura encontrada: {e}")
             return status

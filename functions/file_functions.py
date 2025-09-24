@@ -31,7 +31,7 @@ def verifica_fatura_bd(class_bd, tabela , data_referencia, instalacao):
 
 
 
-def mover_pdf(temp_dir, distribuidora, instalacao, cliente, path): # mover_pdf(temp_dir, ano_referencia, mes_referencia, distribuidora, instalacao, cliente, path):
+def mover_pdf(temp_dir, distribuidora, instalacao, cliente, path, numero_fatura): # mover_pdf(temp_dir, ano_referencia, mes_referencia, distribuidora, instalacao, cliente, path):
     '''Pega do diretorio temporário, altera o nome da fatura e move para o diretório final '''
     
 
@@ -44,7 +44,7 @@ def mover_pdf(temp_dir, distribuidora, instalacao, cliente, path): # mover_pdf(t
         # Determina o diretorio incial e o novo nome do pdf
         original_path = os.path.join(temp_dir, pdfs[0])
         #novo_nome = f"{ano_referencia}.{mes_referencia}_DIST_{distribuidora}_{cliente}_{instalacao}.pdf"
-        novo_nome = f"25.00_DIST_{distribuidora}_{cliente}_{instalacao}.pdf"
+        novo_nome = f"25.00_DIST_{distribuidora}_{cliente}_{instalacao}_{numero_fatura}.pdf"
 
         # Criar diretório, se não existir
         os.makedirs(path, exist_ok=True)

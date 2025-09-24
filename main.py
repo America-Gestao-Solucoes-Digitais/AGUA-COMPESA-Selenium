@@ -107,7 +107,7 @@ for i in range(len(df_login)):
 
 
     # Pegando, renomeando e movendo as faturas atuais (mais recentes)
-    status = faturas_manager.download_fatura_atual()
+    status = faturas_manager.download_faturas()
     if status == False:
         continue
 
