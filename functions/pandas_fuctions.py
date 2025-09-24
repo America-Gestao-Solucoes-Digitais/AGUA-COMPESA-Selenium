@@ -5,7 +5,7 @@ def extrai_dados_df_login(linha):
     login = linha['LOGIN']
     senha = linha['SENHA']
     instalacao = linha['INSTALACAO_MATRICULA']
-    instalacao_pesquisa = linha['INSTALACAO_MATRICULA_PESQUISA']
+    instalacao_pesquisa = linha['INSTALACAO_MATRICULA_PESQUISA'] # Tira os zeros a esquerda, afim de bater com os dados do site
     distribuidora = linha['DISTRIBUIDORA']
     cliente = linha['GRUPO']
 

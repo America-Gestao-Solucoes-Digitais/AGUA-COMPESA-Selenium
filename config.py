@@ -16,7 +16,8 @@ port = os.getenv("PORT")
 
 
 # Filtro para a leitura da tabela no SQL
-distribuidora_where = "DISTRIBUIDORA = 'COMPESA'"
+# distribuidora_where = "DISTRIBUIDORA = 'COMPESA' AND GRUPO = 'DASA' AND INSTALACAO_MATRICULA = '57869631'"
+distribuidora_where = "DISTRIBUIDORA = 'COMPESA' ORDER BY GRUPO, LOGIN, SENHA"
 
 # Obter a chave da API
 API_KEY = os.getenv("API_KEY")

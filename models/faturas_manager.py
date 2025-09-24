@@ -77,8 +77,9 @@ class Faturas_manager:
         df_faturas = formatar_datas(df_faturas)
 
         # Verifica se não tem nenhuma fatura em aberto
-        sem_fatura_aberta = df_faturas[df_faturas["status_fatura"] == "Em aberto"]
-        sem_fatura_aberta = sem_fatura_aberta.empty
+        faturas_abertas = df_faturas[df_faturas["status_fatura"] == "Em aberto"]
+
+
 
         for _, row in df_faturas.iterrows():
 
@@ -96,10 +97,7 @@ class Faturas_manager:
 
             print(data_status, instalacao, data_referencia, data_vencimento, distribuidora, status_fatura)
 
-            self.drive_manage_sql.insert_status(data_status, instalacao, data_referencia, distribuidora, data_vencimento, status_fatura)
-
-
-        return df_faturas, sem_fatura_aberta
+        return df_faturas, faturas_abertas
 
 
 
@@ -146,11 +144,6 @@ class Faturas_manager:
 
             # Fecha somente o popup
             self.driver.close()
-
-
-            # Quebrando a referencia
-            # referencia_ano = self.referencia
-            # referencia_mes = self.referencia
         
             # Alterando o nome da fatura e passando o arquivo para o caminho de leituras
             file_functions.mover_pdf(self.temp_dir, self.distribuidora, self.instalacao, self.cliente, self.path)
