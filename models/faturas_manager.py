@@ -95,7 +95,7 @@ class Faturas_manager:
             distribuidora = self.distribuidora
             status_fatura = row['status_fatura']
 
-            print(data_status, instalacao, data_referencia, data_vencimento, distribuidora, status_fatura)
+            #print(data_status, instalacao, data_referencia, data_vencimento, distribuidora, status_fatura)
 
         return df_faturas, faturas_abertas
 

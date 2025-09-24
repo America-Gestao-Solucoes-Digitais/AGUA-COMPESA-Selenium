@@ -83,10 +83,12 @@ for i in range(len(df_login)):
         captcha_code = solve_captcha(img_file_path)
         status = site_functions.entry_login(driver, dict_elements, login, senha, captcha_code)
 
-
+        # Salva o registro atual afim de fazer o compartivo com o próximo registro.
+        login_linha_anterior = login
+        senha_linha_anterior = senha
 
     # Entra na página da UC
-    status = site_functions.entry_page_uc(driver, dict_elements, instalacao_pesquisa, instalacao)
+    status = site_functions.entry_page_uc(driver, dict_elements, instalacao_pesquisa)
     if status == False:
         continue
 
@@ -97,7 +99,7 @@ for i in range(len(df_login)):
     database_manager = Manage_database()
 
     # Instancia a classe de controle de faturas
-    faturas_manager = Faturas_manager(driver, database_manager, temp_dir, dict_elements, html_page, cliente)
+    faturas_manager = Faturas_manager(driver, database_manager, temp_dir, dict_elements, html_page, instalacao, cliente)
 
     # Verifica o status se tem faturas abertas 
     df_faturas, faturas_abertas = faturas_manager.status_fatura_atual()
@@ -112,10 +114,6 @@ for i in range(len(df_login)):
         continue
 
     database_manager.close_connection()
-
-    # Salva o registro atual afim de fazer o compartivo com o próximo registro.
-    login_linha_anterior = login
-    senha_linha_anterior = senha
 
 # Fecha o driver do Selenium no final do código
 driver.quit()

@@ -70,6 +70,7 @@ def entry_page_uc(driver, dict_elements, instalacao_pesquisa, timeout=10):
         start_time = time.time()
         while time.time() - start_time < timeout:
             try:
+                time.sleep(0.5)  # Pequena pausa para evitar sobrecarga
                 el = driver.find_element(dict_elements['Dinamic_Selector'], selector)
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", el)
                 wait.until(EC.element_to_be_clickable((dict_elements['Dinamic_Selector'], selector)))
