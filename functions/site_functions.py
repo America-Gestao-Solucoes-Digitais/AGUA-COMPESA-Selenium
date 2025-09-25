@@ -47,9 +47,10 @@ def entry_page_uc(driver, dict_elements, instalacao_pesquisa, timeout=10):
 
     status = True  # Define status padrão
 
-    side_menu = driver.find_element(dict_elements['XPATH_side_menu'][0], dict_elements['XPATH_side_menu'][1])
-
     try:
+
+        side_menu = driver.find_element(dict_elements['XPATH_side_menu'][0], dict_elements['XPATH_side_menu'][1])
+
         if "show-side-menu" in side_menu.get_attribute("class"):
             pass
         else:
