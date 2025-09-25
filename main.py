@@ -124,7 +124,13 @@ for i in range(len(df_login)):
     faturas_manager = Faturas_manager(driver, database_manager, temp_dir, dict_elements, html_page, instalacao, cliente)
 
     # Verifica o status se tem faturas abertas 
-    df_faturas, faturas_abertas = faturas_manager.status_fatura_atual()
+    status, df_faturas, faturas_abertas = faturas_manager.status_fatura_atual()
+    if not status:
+        print(f'Erro ao verificar faturas para instalação: {instalacao}')
+        df_log = log_functions.registrar_linha_df_log(df_log, instalacao, status, 'status_fatura_atual', f'Erro ao verificar faturas.')
+        continue
+
+
     if faturas_abertas.empty:
         print('[INFO] Não há faturas em aberto.')
         continue

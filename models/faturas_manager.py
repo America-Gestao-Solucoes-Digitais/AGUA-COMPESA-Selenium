@@ -60,24 +60,32 @@ class Faturas_manager:
         Pegando o status da fatura atual a partir do html_page (Faturas em Aberto e Faturas Pagas),
         Cria dois DataFrames, um com todas as faturas e outro somente com as faturas em aberto.
         '''
+        status = True
 
-        soup = BeautifulSoup(self.html, "html.parser")
+        try:
+            soup = BeautifulSoup(self.html, "html.parser")
 
-        # Extrair baseado no título
-        faturas = []
-        faturas.extend(extrair_faturas_por_titulo("Faturas em Aberto", "Em aberto", soup))
-        faturas.extend(extrair_faturas_por_titulo("Faturas Pagas", "Pago", soup))
+            # Extrair baseado no título
+            faturas = []
+            faturas.extend(extrair_faturas_por_titulo("Faturas em Aberto", "Em aberto", soup))
+            faturas.extend(extrair_faturas_por_titulo("Faturas Pagas", "Pago", soup))
 
-        # Criar DataFrame
-        df_faturas = pd.DataFrame(faturas)
+            # Criar DataFrame
+            df_faturas = pd.DataFrame(faturas)
 
-        # Formatar as datas
-        df_faturas = formatar_datas(df_faturas)
+            # Formatar as datas
+            df_faturas = formatar_datas(df_faturas)
 
-        # Verifica se não tem nenhuma fatura em aberto
-        faturas_abertas = df_faturas[df_faturas["status_fatura"] == "Em aberto"]
+            # Verifica se não tem nenhuma fatura em aberto
+            faturas_abertas = df_faturas[df_faturas["status_fatura"] == "Em aberto"]
 
-        return df_faturas, faturas_abertas
+        except Exception as e:
+            print(f'[ERROR] Erro ao extrair faturas: {e}')
+            df_faturas = pd.DataFrame()
+            faturas_abertas = pd.DataFrame()
+            status = False
+
+        return status, df_faturas, faturas_abertas
 
 
 
